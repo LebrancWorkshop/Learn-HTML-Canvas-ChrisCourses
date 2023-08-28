@@ -1,24 +1,77 @@
-import './style.css'
-import typescriptLogo from './typescript.svg'
-import viteLogo from '/vite.svg'
-import { setupCounter } from './counter.ts'
+import { canvas, ctx, config } from './canvas';
+import Rectangle from './entities/rect';
 
-document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
-  <div>
-    <a href="https://vitejs.dev" target="_blank">
-      <img src="${viteLogo}" class="logo" alt="Vite logo" />
-    </a>
-    <a href="https://www.typescriptlang.org/" target="_blank">
-      <img src="${typescriptLogo}" class="logo vanilla" alt="TypeScript logo" />
-    </a>
-    <h1>Vite + TypeScript</h1>
-    <div class="card">
-      <button id="counter" type="button"></button>
-    </div>
-    <p class="read-the-docs">
-      Click on the Vite and TypeScript logos to learn more
-    </p>
-  </div>
-`
+// Setting up the canvas.
 
-setupCounter(document.querySelector<HTMLButtonElement>('#counter')!)
+canvas.width = config.width;
+canvas.height = config.height;
+
+ctx.fillStyle = config.bgColor;
+ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+// Drawing the actor.
+const actorWidth = 100;
+const actorHeight = 100;
+const actor = new Rectangle(0, canvas.height - actorHeight, actorWidth, actorHeight, 'Green');
+actor.draw();
+
+// Jump Logic.
+const action = {
+  jump: false
+};
+
+const speed = {
+  move: 30,
+  jump: 10
+};
+
+window.addEventListener('keydown', (event: KeyboardEvent) => {
+  if(event.code === 'Space' && action.jump === false) {
+    action.jump = true;
+    jump();
+  } else if(event.code === 'ArrowRight') {
+    if(actor.x + actor.width >= canvas.width) return;
+    if(canvas.width - (actor.x + actor.width) < speed.move) {
+      clear();
+      actor.move(canvas.width - (actor.x + actor.width), 0);
+      actor.draw(); 
+    }
+    clear();
+    actor.move(speed.move, 0);
+    actor.draw();
+  } else if(event.code === 'ArrowLeft') {
+    if(actor.x <= 0) return;
+    clear();
+    actor.move(-speed.move, 0);
+    actor.draw();
+  }
+});
+
+function jump() {
+  if(action.jump) {
+    for(let i = 0; i < 10; i++) {
+      if(i < 5) {
+        setTimeout(() => {
+          clear();
+          actor.move(0, -10);
+          actor.draw();
+        }, speed.jump * i);
+      } else {
+        setTimeout(() => {
+          clear();
+          actor.move(0, 10);
+          actor.draw();
+        }, speed.jump * i);
+      }
+    }
+  }
+  action.jump = false;
+};
+
+function clear() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = config.bgColor;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+};
+
+
